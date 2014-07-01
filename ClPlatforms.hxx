@@ -14,6 +14,8 @@ namespace cl
         struct Platforms;
     }
 
+    class Device;
+
     class Platform
     {
     public:
@@ -31,6 +33,8 @@ namespace cl
         std::string extensions() const;
         std::string version() const;
         std::string profile() const;
+
+        int device_count() const;
 
     private:
         std::string get_info(cl_platform_info info);
@@ -51,9 +55,9 @@ namespace cl
         Platforms & operator = (Platforms &&) = default;
         Platforms & operator = (Platforms const & source);
 
-        int count() const;
-        Platform & operator [] (int index);
-        Platform const & operator [] (int index) const;
+        unsigned count() const;
+        Platform * operator [] (unsigned index);
+        Platform const * operator [] (unsigned index) const;
 
         PlatformIterator begin();
         PlatformIterator end();
@@ -65,7 +69,7 @@ namespace cl
     class PlatformIterator
     {
     public:
-        PlatformIterator(Platforms * platforms = nullptr, int index = 0);
+        PlatformIterator(Platforms * platforms = nullptr, unsigned index = 0);
         PlatformIterator(PlatformIterator const &) = default;
         PlatformIterator(PlatformIterator &&) = default;
         ~PlatformIterator() = default;
@@ -79,11 +83,11 @@ namespace cl
         PlatformIterator operator ++ (int);
         PlatformIterator & operator ++ ();
 
-        Platform & operator * () const;
+        Platform * operator * () const;
 
     private:
         Platforms * platforms;
-        int index;
+        unsigned index;
     };
 }
 

@@ -1,4 +1,5 @@
 #include "ClPlatforms.hxx"
+#include "ClDevices.hxx"
 
 #include <vector>
 
@@ -14,6 +15,8 @@ namespace cl
             std::string extensions;
             std::string version;
             std::string profile;
+
+            // std::vector< ::cl::Device> devices;
         };
 
         struct Platforms
@@ -78,6 +81,11 @@ namespace cl
         return self->profile;
     }
 
+    int Platform::device_count() const
+    {
+        return 0;
+    }
+
     std::string Platform::get_info(cl_platform_info info)
     {
         std::size_t info_size = 0;
@@ -118,19 +126,23 @@ namespace cl
         return (*this);
     }
 
-    int Platforms::count() const
+    unsigned Platforms::count() const
     {
-        return static_cast<int>(self->platforms.size());
+        return static_cast<unsigned>(self->platforms.size());
     }
 
-    Platform & Platforms::operator [] (int index)
+    Platform * Platforms::operator [] (unsigned index)
     {
-        return self->platforms[index];
+        if (index >= count())
+            return nullptr;
+        return &(self->platforms[index]);
     }
 
-    Platform const & Platforms::operator [] (int index) const
+    Platform const * Platforms::operator [] (unsigned index) const
     {
-        return self->platforms[index];
+        if (index >= count())
+            return nullptr;
+        return &(self->platforms[index]);
     }
 
     PlatformIterator Platforms::begin()
@@ -143,7 +155,7 @@ namespace cl
         return PlatformIterator();
     }
 
-    PlatformIterator::PlatformIterator(Platforms * platforms /* = nullptr */, int index /* = 0 */)
+    PlatformIterator::PlatformIterator(Platforms * platforms /* = nullptr */, unsigned index /* = 0 */)
         : platforms(platforms)
         , index(index)
     {
@@ -191,8 +203,10 @@ namespace cl
         return (*this);
     }
 
-    Platform & PlatformIterator::operator * () const
+    Platform * PlatformIterator::operator * () const
     {
+        if (!platforms || index > platforms->count())
+            return nullptr;
         return (*platforms)[index];
     }
 }
