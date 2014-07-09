@@ -34,10 +34,12 @@ namespace cl
         std::string version() const;
         std::string profile() const;
 
-        int device_count() const;
+        unsigned device_count() const;
+        Device const * device(unsigned index) const;
 
     private:
         std::string get_info(cl_platform_info info);
+        void load_devices();
 
         std::unique_ptr<detail::Platform> self;
     };

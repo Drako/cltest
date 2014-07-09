@@ -16,13 +16,16 @@ namespace cl
             std::string version;
             std::string profile;
 
-            // std::vector< ::cl::Device> devices;
+            std::vector< ::cl::Device> devices;
         };
 
         struct Platforms
         {
             std::vector< ::cl::Platform> platforms;
         };
+
+        // only a stub... real version is in ClDevices.cxx
+        struct Device {};
     }
 
     Platform::Platform(cl_platform_id id)
@@ -34,6 +37,7 @@ namespace cl
         self->extensions = get_info(CL_PLATFORM_EXTENSIONS);
         self->version = get_info(CL_PLATFORM_VERSION);
         self->profile = get_info(CL_PLATFORM_PROFILE);
+        load_devices();
     }
 
     Platform::Platform(Platform const & source)
@@ -81,9 +85,16 @@ namespace cl
         return self->profile;
     }
 
-    int Platform::device_count() const
+    unsigned Platform::device_count() const
     {
-        return 0;
+        return static_cast<unsigned>(self->devices.size());
+    }
+
+    Device const * Platform::device(unsigned index) const
+    {
+        if (index >= device_count())
+            return nullptr;
+        return &(self->devices[index]);
     }
 
     std::string Platform::get_info(cl_platform_info info)
@@ -97,11 +108,30 @@ namespace cl
         return buffer.data();
     }
 
+    void Platform::load_devices()
+    {
+        cl_uint devices = 0;
+        clGetDeviceIDs(self->id, CL_DEVICE_TYPE_ALL, 0, nullptr, &devices);
+
+        if (devices == 0)
+            return;
+
+        std::vector<cl_device_id> ids;
+        clGetDeviceIDs(self->id, CL_DEVICE_TYPE_ALL, devices, ids.data(), nullptr);
+
+        self->devices.reserve(devices);
+        for (auto id : ids)
+            self->devices.push_back(Device(this, id));
+    }
+
     Platforms::Platforms()
         : self(new detail::Platforms)
     {
         cl_uint platform_count = 0;
         clGetPlatformIDs(0, nullptr, &platform_count);
+
+        if (platform_count == 0)
+            return;
 
         std::vector<cl_platform_id> ids(platform_count);
         clGetPlatformIDs(platform_count, ids.data(), nullptr);

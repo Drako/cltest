@@ -14,6 +14,7 @@ int main()
         std::cout << "Vendor:         " << platform->vendor() << "\n";
         std::cout << "OpenCL-Version: " << platform->version() << "\n";
         std::cout << "OpenCL-Profile: " << platform->profile() << "\n";
+        std::cout << "Devices:        " << platform->device_count() << "\n";
     }
 
     return 0;
