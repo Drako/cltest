@@ -116,7 +116,7 @@ namespace cl
         if (devices == 0)
             return;
 
-        std::vector<cl_device_id> ids;
+        std::vector<cl_device_id> ids(devices);
         clGetDeviceIDs(self->id, CL_DEVICE_TYPE_ALL, devices, ids.data(), nullptr);
 
         self->devices.reserve(devices);
