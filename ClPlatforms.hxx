@@ -1,77 +1,53 @@
 #ifndef CLPLATFORMS_HXX
 #define CLPLATFORMS_HXX
 
-#include <memory>
+#include "ClReference.hxx"
+
 #include <string>
 
 #include <CL/cl.h>
 
 namespace cl
 {
-    namespace detail
+    struct Device;
+    struct Context;
+
+    struct Platform
     {
-        struct Platform;
-        struct Platforms;
-    }
+        virtual ~Platform() = default;
 
-    class Device;
+        virtual std::string name() const = 0;
+        virtual std::string vendor() const = 0;
+        virtual std::string extensions() const = 0;
+        virtual std::string version() const = 0;
+        virtual std::string profile() const = 0;
 
-    class Platform
-    {
-    public:
-        Platform(cl_platform_id id);
-        Platform(Platform &&) = default;
-        Platform(Platform const & source);
-        ~Platform();
+        virtual unsigned device_count() const = 0;
+        virtual Reference<Device> device(unsigned index) const = 0;
 
-        Platform & operator = (Platform &&) = default;
-        Platform & operator = (Platform const & source);
-
-        cl_platform_id id() const;
-        std::string name() const;
-        std::string vendor() const;
-        std::string extensions() const;
-        std::string version() const;
-        std::string profile() const;
-
-        unsigned device_count() const;
-        Device const * device(unsigned index) const;
-
-    private:
-        std::string get_info(cl_platform_info info);
-        void load_devices();
-
-        std::unique_ptr<detail::Platform> self;
+        virtual Reference<Context> create_context() const = 0;
     };
 
     class PlatformIterator;
 
-    class Platforms
+    struct Platforms
     {
     public:
-        Platforms();
-        Platforms(Platforms &&) = default;
-        Platforms(Platforms const & source);
-        ~Platforms();
+        virtual ~Platforms() = default;
 
-        Platforms & operator = (Platforms &&) = default;
-        Platforms & operator = (Platforms const & source);
+        virtual unsigned count() const = 0;
+        virtual Reference<Platform> operator [] (unsigned index) const = 0;
 
-        unsigned count() const;
-        Platform * operator [] (unsigned index);
-        Platform const * operator [] (unsigned index) const;
-
-        PlatformIterator begin();
-        PlatformIterator end();
-
-    private:
-        std::unique_ptr<detail::Platforms> self;
+        virtual PlatformIterator begin() const = 0;
+        virtual PlatformIterator end() const = 0;
     };
+
+    Reference<Platforms> get_platforms();
 
     class PlatformIterator
     {
     public:
-        PlatformIterator(Platforms * platforms = nullptr, unsigned index = 0);
+        PlatformIterator(Platforms const * platforms = nullptr, unsigned index = 0);
         PlatformIterator(PlatformIterator const &) = default;
         PlatformIterator(PlatformIterator &&) = default;
         ~PlatformIterator() = default;
@@ -85,10 +61,10 @@ namespace cl
         PlatformIterator operator ++ (int);
         PlatformIterator & operator ++ ();
 
-        Platform * operator * () const;
+        Reference<Platform> operator * () const;
 
     private:
-        Platforms * platforms;
+        Platforms const * platforms;
         unsigned index;
     };
 }
